@@ -1,0 +1,19 @@
+[
+    {
+        "model": "mistral-nemo:latest",
+        "size": "7.1",
+        "size_type": "GB"
+    },
+
+    {
+        "model": "phi4:latest",
+        "size": "9.1",
+        "size_type": "GB"
+    },
+
+    {
+        "model": "openhermes:latest",
+        "size": "4.1",
+        "size_type": "GB"
+    }
+]
