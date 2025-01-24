@@ -21,7 +21,6 @@ all_model_file = "models_all.txt"
 # ---------------------------------------------------------------------------------------------------
 
 
-
 def pytest_generate_tests(metafunc):
     model = metafunc.config.getoption("model")
     run_type = metafunc.config.getoption("run_type")
@@ -37,33 +36,46 @@ def pytest_generate_tests(metafunc):
 
     metafunc.parametrize("model", models_name)
 
+
 def pytest_terminal_summary(terminalreporter):
-    results_dir = 'results'
+    results_dir = "results"
     os.makedirs(results_dir, exist_ok=True)
+
+    # Function to move existing files
+    def move_existing_file(base_filename):
+        filename = os.path.join(results_dir, base_filename)
+        if os.path.exists(filename):
+            index = 1
+            while os.path.exists(
+                os.path.join(results_dir, f"{base_filename.split('.')[0]}_{index}.txt")
+            ):
+                index += 1
+            os.rename(
+                filename,
+                os.path.join(results_dir, f"{base_filename.split('.')[0]}_{index}.txt"),
+            )
+
+    # Move existing passed.txt and failed.txt files if they exist
+    move_existing_file("passed.txt")
+    move_existing_file("failed.txt")
 
     passed_tests = []
     failed_tests = []
 
     for key in terminalreporter.stats:
         for report in terminalreporter.stats[key]:
-            if hasattr(report, 'when') and report.when == 'call':
+            if hasattr(report, "when") and report.when == "call":
                 if report.passed:
                     passed_tests.append(report.nodeid)
                 elif report.failed:
                     failed_tests.append(report.nodeid)
 
-    def save_with_index(base_filename, tests):
-        filename = os.path.join(results_dir, base_filename)
-        index = 0
-        while os.path.exists(filename):
-            index += 1
-            filename = os.path.join(results_dir, f"{base_filename.split('.')[0]}_{index}.txt")
-        
-        with open(filename, 'w') as f:
-            f.write('\n'.join(tests))
+    with open(os.path.join(results_dir, "passed.txt"), "w") as f:
+        f.write("\n".join(passed_tests))
 
-    save_with_index('passed.txt', passed_tests)
-    save_with_index('failed.txt', failed_tests)
+    with open(os.path.join(results_dir, "failed.txt"), "w") as f:
+        f.write("\n".join(failed_tests))
+
 
 def pytest_addoption(parser):
     parser.addoption("--model", action="store", default=None)

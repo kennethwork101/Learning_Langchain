@@ -25,5 +25,5 @@ wheels/
 dist/
 ipynb_files/
 mydb/
-results/
+results*/
 out*

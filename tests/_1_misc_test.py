@@ -25,6 +25,7 @@ def test_t0_func(options, model):
     else:
         assert color in result
 
+
 @clock
 def test_t1_func(options, model):
     name_ = f"{inspect.currentframe().f_code.co_name}"
@@ -38,6 +39,7 @@ def test_t1_func(options, model):
     printit(f"{name_} response", response)
     printit(f"{name_} response content", response.content)
     assert "paris" in response.content.lower()
+
 
 @clock
 def test_t2_func(options, model):
@@ -56,6 +58,7 @@ def test_t2_func(options, model):
     printit(f"{name_} response", response)
     printit(f"{name_} response content", response.content)
     assert "paris" in response.content.lower()
+
 
 @clock
 def test_t3_func(options, model):
@@ -82,6 +85,7 @@ def test_t3_func(options, model):
     assert "huggingface" in response.content.lower()
     assert "openai" in response.content.lower()
     assert "cohere" in response.content.lower()
+
 
 @clock
 def test_t4_func(options, model):
@@ -113,6 +117,7 @@ def test_t4_func(options, model):
     assert "openai" in response.content.lower()
     assert "cohere" in response.content.lower()
 
+
 @clock
 def test_t5_func(options, model):
     name_ = f"{inspect.currentframe().f_code.co_name}"
@@ -124,6 +129,7 @@ def test_t5_func(options, model):
     options["question"] = "What weighs more, a pound of bricks or a pound of feathers"
     response = main(options)
     printit(f"{name_} response", response)
+
 
 @pytest.mark.testme
 @clock
@@ -151,7 +157,7 @@ def test_t7_func(options, model):
     question = "apple, banana, cherry"
     options["question"] = question
     response = main(options)
-    question = question.split(',')
+    question = question.split(",")
     question = [q.strip() for q in question]
     printit(f"{name_} question", question)
     printit(f"{name_} response", response)

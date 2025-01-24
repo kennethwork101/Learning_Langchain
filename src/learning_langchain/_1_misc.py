@@ -22,9 +22,9 @@ uv add langchain-postgres
 uv add jupyterlab
 """
 
+
 @clock
 def main(options: Dict[str, Any]):
-
     def fn_t0():
         name_ = f"{inspect.currentframe().f_code.co_name}"
         printit(f"{name_} options", options)
@@ -54,7 +54,7 @@ def main(options: Dict[str, Any]):
         prompt = [message_sm, message_hm]
         response = llm.invoke(prompt)
         return response
-    
+
     def fn_t3():
         name_ = f"{inspect.currentframe().f_code.co_name}"
         printit(f"{name_} options", options)
@@ -72,10 +72,7 @@ def main(options: Dict[str, Any]):
             Answer:
            """
         )
-        prompt = template.invoke({
-            "context": context,
-            "question": question
-        })
+        prompt = template.invoke({"context": context, "question": question})
         response = llm.invoke(prompt)
         return response
 
@@ -88,21 +85,20 @@ def main(options: Dict[str, Any]):
         printit(f"{name_} question", question)
         printit(f"{name_} system_sm", system_sm)
         printit(f"{name_} context", context)
-        template = ChatPromptTemplate.from_messages([
-            ('system', 'system: {system}'),
-            ('human', 'Context: {context}'),
-            ('human', 'Question: {question}'),
-        ])
-        prompt = template.invoke({
-            "system": system_sm,
-            "context": context,
-            "question": question
-        })
+        template = ChatPromptTemplate.from_messages(
+            [
+                ("system", "system: {system}"),
+                ("human", "Context: {context}"),
+                ("human", "Question: {question}"),
+            ]
+        )
+        prompt = template.invoke(
+            {"system": system_sm, "context": context, "question": question}
+        )
         response = llm.invoke(prompt)
         return response
 
     def fn_t5():
-
         class AnswerWithJustification(BaseModel):
             answer: str
             justification: str
@@ -118,10 +114,13 @@ def main(options: Dict[str, Any]):
         class AnswerWithJustification(BaseModel):
             answer: str
             justification: str
+
         name_ = f"{inspect.currentframe().f_code.co_name}"
         printit(f"{name_} options", options)
         question = options["question"]
-        structured_llm = llm.with_structured_output(AnswerWithJustification, include_raw=True)
+        structured_llm = llm.with_structured_output(
+            AnswerWithJustification, include_raw=True
+        )
         response = structured_llm.invoke(question)
         return response
 
@@ -152,7 +151,6 @@ def main(options: Dict[str, Any]):
     llm = get_llm(options)
     response = mapping[options["fn"]]()
     return response
-
 
 
 def Options():
