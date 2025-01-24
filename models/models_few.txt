@@ -1,19 +1,37 @@
 [
     {
-        "model": "mistral-nemo:latest",
-        "size": "7.1",
+        "model": "deepseek-r1:latest",
+        "size": "4.7",
         "size_type": "GB"
     },
-
     {
-        "model": "phi4:latest",
-        "size": "9.1",
+        "model": "qwen2:latest",
+        "size": "4.4",
         "size_type": "GB"
     },
-
     {
-        "model": "openhermes:latest",
+        "model": "qwen2.5:latest",
+        "size": "4.7",
+        "size_type": "GB"
+    },
+    {
+        "model": "mistral:latest",
         "size": "4.1",
+        "size_type": "GB"
+    },
+    {
+        "model": "llama3-groq-tool-use:latest",
+        "size": "4.7",
+        "size_type": "GB"
+    },
+    {
+        "model": "llama3.2:latest",
+        "size": "2.0",
+        "size_type": "GB"
+    },
+    {
+        "model": "llama3.1:latest",
+        "size": "4.9",
         "size_type": "GB"
     }
 ]

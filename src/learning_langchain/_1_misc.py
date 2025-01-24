@@ -3,11 +3,11 @@ import inspect
 from typing import Any, Dict
 
 from kwwutils import clock, get_llm, printit
+from langchain.schema.output_parser import StrOutputParser
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import CommaSeparatedListOutputParser
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-
-# from langchain_core.pydantic_v1 import BaseModel
+from langchain_core.runnables import chain
 from pydantic import BaseModel
 
 """ 
@@ -132,6 +132,72 @@ def main(options: Dict[str, Any]):
         response = parser.invoke(question, output_parser=parser)
         return response
 
+    def fn_t8():
+        name_ = f"{inspect.currentframe().f_code.co_name}"
+        printit(f"{name_} options", options)
+        question = options["question"]
+        printit(f"{name_} question", question)
+        response1 = llm.invoke(question)
+        printit(f"{name_} response1", response1)
+        response2 = llm.batch([question, "Bye!"])
+        for token in llm.stream("Bye!"):
+            print(token)
+        return response2
+
+    def fn_t9():
+        name_ = f"{inspect.currentframe().f_code.co_name}"
+        printit(f"{name_} options", options)
+        question = options["question"]
+        system_sm = options["system_sm"]
+        context = options["context"]
+        printit(f"{name_} question", question)
+        printit(f"{name_} system_sm", system_sm)
+        printit(f"{name_} context", context)
+        template = ChatPromptTemplate.from_messages(
+            [
+                ("system", "system: {system}"),
+                ("human", "Context: {context}"),
+                ("human", "Question: {question}"),
+            ]
+        )
+        input_ = {
+            "system": system_sm,
+            "context": context,
+            "question": question,
+        }
+        chain1 = template | llm | StrOutputParser()
+        response = chain1.invoke(input_)
+        return response
+
+    def fn_t10():
+        @chain
+        def chatbot(values):
+            prompt = template.invoke(values)
+            return llm.invoke(prompt)
+
+        name_ = f"{inspect.currentframe().f_code.co_name}"
+        printit(f"{name_} options", options)
+        question = options["question"]
+        system_sm = options["system_sm"]
+        context = options["context"]
+        printit(f"{name_} question", question)
+        printit(f"{name_} system_sm", system_sm)
+        printit(f"{name_} context", context)
+        template = ChatPromptTemplate.from_messages(
+            [
+                ("system", "system: {system}"),
+                ("human", "Context: {context}"),
+                ("human", "Question: {question}"),
+            ]
+        )
+        input_ = {
+            "system": system_sm,
+            "context": context,
+            "question": question,
+        }
+        response = chatbot.invoke(input_)
+        return response
+
     ###########################################################################
     # ### MAIN
     ###########################################################################
@@ -147,6 +213,9 @@ def main(options: Dict[str, Any]):
         "t5": fn_t5,
         "t6": fn_t6,
         "t7": fn_t7,
+        "t8": fn_t8,
+        "t9": fn_t9,
+        "t10": fn_t10,
     }
     llm = get_llm(options)
     response = mapping[options["fn"]]()

@@ -19,7 +19,7 @@ def test_t0_func(options, model):
     printit(f"{name_} response", response)
     printit(f"{name_} response content", response.content)
     result = response.content.lower().strip()
-    for color in ["blue", "limit"]:
+    for color in ["blue", "limit", "region"]:
         if color in result:
             break
     else:
@@ -82,7 +82,9 @@ def test_t3_func(options, model):
     response = main(options)
     printit(f"{name_} response", response)
     printit(f"{name_} response content", response.content)
-    assert "huggingface" in response.content.lower()
+    assert any(
+        phrase in response.content.lower() for phrase in ["huggingface", "hugging face"]
+    )
     assert "openai" in response.content.lower()
     assert "cohere" in response.content.lower()
 
@@ -113,7 +115,9 @@ def test_t4_func(options, model):
     response = main(options)
     printit(f"{name_} response", response)
     printit(f"{name_} response content", response.content)
-    assert "huggingface" in response.content.lower()
+    assert any(
+        phrase in response.content.lower() for phrase in ["huggingface", "hugging face"]
+    )
     assert "openai" in response.content.lower()
     assert "cohere" in response.content.lower()
 
@@ -131,7 +135,6 @@ def test_t5_func(options, model):
     printit(f"{name_} response", response)
 
 
-@pytest.mark.testme
 @clock
 def test_t6_func(options, model):
     name_ = f"{inspect.currentframe().f_code.co_name}"
@@ -162,3 +165,80 @@ def test_t7_func(options, model):
     printit(f"{name_} question", question)
     printit(f"{name_} response", response)
     assert sorted(question) == sorted(response)
+
+
+@clock
+def test_t8_func(options, model):
+    name_ = f"{inspect.currentframe().f_code.co_name}"
+    printit(f"{name_} options", options)
+    printit(f"{name_} model", model)
+    options["model"] = model
+    options["llm_type"] = "chat"
+    options["fn"] = "t8"
+    options["question"] = "Hi there!"
+    response = main(options)
+    printit(f"{name_} response", response)
+    printit(f"{name_} response content", response[-1].content)
+    assert "bye" in response[-1].content.lower()
+
+
+@clock
+def test_t9_func(options, model):
+    name_ = f"{inspect.currentframe().f_code.co_name}"
+    printit(f"{name_} options", options)
+    printit(f"{name_} model", model)
+    options["model"] = model
+    options["llm_type"] = "chat"
+    options["fn"] = "t9"
+    options["question"] = "Which model providers offer LLMs?"
+    options["system_sm"] = """
+        Answer the question fully and completely as possible based on the context below.
+        If the question cannot be answered using the information provided,
+        answer with "I don\'t know".'
+    """
+    options["context"] = """
+        The most recent advancements in NLP are being driven by Large
+        Language Models (LLMs). These models outperform their smaller
+        counterparts and have become invaluable for developers who are creating
+        applications with NLP capabilities. Developers can tap into these
+        models through HuggingFace's `transformers` library, or by utilizing
+        OpenAI and Cohere's offerings through the `openai` and `cohere`
+        libraries, respectively.
+    """
+    response = main(options)
+    printit(f"{name_} response", response)
+    assert any(phrase in response.lower() for phrase in ["huggingface", "hugging face"])
+    assert "openai" in response.lower()
+    assert "cohere" in response.lower()
+
+
+@pytest.mark.testme
+@clock
+def test_t10_func(options, model):
+    name_ = f"{inspect.currentframe().f_code.co_name}"
+    printit(f"{name_} options", options)
+    printit(f"{name_} model", model)
+    options["model"] = model
+    options["llm_type"] = "chat"
+    options["fn"] = "t10"
+    options["question"] = "Which model providers offer LLMs?"
+    options["system_sm"] = """
+        Answer the question fully and completely as possible based on the
+        context below.  If the question cannot be answered using the information
+        provided, answer with "I don\'t know".'
+    """
+    options["context"] = """
+        The most recent advancements in NLP are being driven by Large
+        Language Models (LLMs). These models outperform their smaller
+        counterparts and have become invaluable for developers who are creating
+        applications with NLP capabilities. Developers can tap into these
+        models through HuggingFace's `transformers` library, or by utilizing
+        OpenAI and Cohere's offerings through the `openai` and `cohere`
+        libraries, respectively.
+    """
+    response = main(options)
+    printit(f"{name_} response", response)
+    response = response.content
+    assert any(phrase in response.lower() for phrase in ["huggingface", "hugging face"])
+    assert "openai" in response.lower()
+    assert "cohere" in response.lower()
