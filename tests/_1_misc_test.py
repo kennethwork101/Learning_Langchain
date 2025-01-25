@@ -1,6 +1,5 @@
 import inspect
 
-import pytest
 from kwwutils import clock, printit
 
 from uvprog2025.Learning_Langchain.src.learning_langchain._1_misc import main
@@ -212,7 +211,7 @@ def test_t9_func(options, model):
     assert "cohere" in response.lower()
 
 
-@pytest.mark.testme
+# @pytest.mark.testme
 @clock
 def test_t10_func(options, model):
     name_ = f"{inspect.currentframe().f_code.co_name}"

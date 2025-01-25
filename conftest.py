@@ -1,5 +1,7 @@
+import inspect
 import json
 import os
+from pathlib import Path
 
 import pytest
 
@@ -109,14 +111,15 @@ How to get pytest to do this?
 
 
 def models_file(model_file, models_dir="models"):
-    print(f"---1 conftest model_file >{model_file}<")
+    name_ = f"{inspect.currentframe().f_code.co_name}"
+    print(f"{name_} 1 conftest model_file >{model_file}<")
     dirpath = os.path.dirname(os.path.abspath(__file__))
-    print(f"---2 conftest dirpath >{dirpath}<")
+    print(f"{name_} 2 conftest dirpath >{dirpath}<")
     model_file = os.path.join(dirpath, models_dir, model_file)
-    print(f"---3 conftest model_file >{model_file}<")
+    print(f"{name_} 3 conftest model_file >{model_file}<")
     with open(model_file) as fp:
         models = json.load(fp)
-    print(f"1 models: {models}")
+    print(f"{name_} 4 models: {models}")
     # Remove models that are known to fail
     skip_models = [
         "falcon",
@@ -132,25 +135,24 @@ def models_file(model_file, models_dir="models"):
         "yi",
     ]
 
-    print(f"2 skip_models: {skip_models}")
+    print(f"{name_} 5 skip_models: {skip_models}")
     models = [m for m in models if m["model"].split(":")[0] not in skip_models]
-    print(f"3 {models}")
+    print(f"{name_} 6 {models}")
     return models
 
 
-# ### First attempt and do work but is not being used now
 def models_file_v1(model_file):
     """
     Retrieve the models file
     Note the package root is set in the os.envrion PACKAGE_ROOT so each project must set one with their own key
     """
-    print(f"1 conftest model_file >{model_file}<")
-    # Retrieve the package root from the environment
-    package_root = os.path.dirname(os.path.abspath(__file__))
-    print(f"2 conftest package_root >{package_root}<")
+    name_ = f"{inspect.currentframe().f_code.co_name}"
+    package_root = get_package_root()
     models_dir = "models"
-    print(f"3 conftest model_dirs >{models_dir}<")
     model_file2 = os.path.join(package_root, models_dir, model_file)
+    print(f"1 conftest model_file >{model_file}<")
+    print(f"2 conftest package_root >{package_root}<")
+    print(f"3 conftest model_dirs >{models_dir}<")
     print(f"4 conftest model_file2 >{model_file2}<")
     with open(model_file2) as fp:
         models = json.load(fp)
@@ -158,9 +160,18 @@ def models_file_v1(model_file):
     return models
 
 
+def get_package_root():
+    return Path(__file__).resolve().parent
+
+
 #
 # ############ Fixtures ############
 #
+
+
+@pytest.fixture
+def package_root():
+    return get_package_root()
 
 
 @pytest.fixture(params=models_file_v1(one_model_file))
