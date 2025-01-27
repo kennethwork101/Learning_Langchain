@@ -20,6 +20,7 @@ uv add langchain_openai
 uv add langchain-text-splitters
 uv add langchain-postgres
 uv add jupyterlab
+uv add psycopg2-binary
 """
 
 

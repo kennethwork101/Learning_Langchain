@@ -1,5 +1,6 @@
 import inspect
 
+import pytest
 from kwwutils import clock, printit
 
 from uvprog2025.Learning_Langchain.src.learning_langchain._1_misc import main

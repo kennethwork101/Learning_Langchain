@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from kwwutils import clock, get_embeddings, get_llm, printit
 from langchain_community.document_loaders import PyPDFLoader, TextLoader, WebBaseLoader
+from langchain_postgres.vectorstores import PGVector
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 
 
@@ -93,6 +94,7 @@ def main(options: Dict[str, Any]):
         name_ = f"{inspect.currentframe().f_code.co_name}"
         printit(f"{name_} options", options)
         embedding = get_embeddings(options)
+        printit(f"{name_} embedding", embedding)
         doc = [
             "Hi there!",
             "Oh, hello!",
@@ -102,6 +104,33 @@ def main(options: Dict[str, Any]):
         ]
         embeddings = embedding.embed_documents(doc)
         return embeddings
+
+    def fn_t8():
+        name_ = f"{inspect.currentframe().f_code.co_name}"
+        printit(f"{name_} options", options)
+        embedding = get_embeddings(options)
+        printit(f"{name_} embedding", embedding)
+        filename = options["filename"]
+        question = options["question"]
+        raw_documents = TextLoader(filename).load()
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000, chunk_overlap=200
+        )
+        documents = text_splitter.split_documents(raw_documents)
+        connection = "postgresql+psycopg://langchain:langchain@localhost:6024/langchain"
+        db = PGVector.from_documents(documents, embedding, connection=connection)
+        printit(f"{name_} db", db)
+        response = db.similarity_search(question, k=1)
+        return response
+
+    def fn_t9():
+        name_ = f"{inspect.currentframe().f_code.co_name}"
+        printit(f"{name_} options", options)
+        embedding = get_embeddings(options)
+        printit(f"{name_} embedding", embedding)
+        printit(f"{name_} db_connection", db_connection)
+
+        return
 
     ###########################################################################
     # ### MAIN
@@ -117,8 +146,8 @@ def main(options: Dict[str, Any]):
         "t5": fn_t5,
         "t6": fn_t6,
         "t7": fn_t7,
-        # "t8": fn_t8,
-        # "t9": fn_t9,
+        "t8": fn_t8,
+        "t9": fn_t9,
         # "t10": fn_t10,
     }
     llm = get_llm(options)

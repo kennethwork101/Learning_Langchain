@@ -1,9 +1,15 @@
 import inspect
 import json
 import os
+import time
 from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
+from kwwutils import get_embeddings, printit
+from langchain_postgres.vectorstores import PGVector
+
+load_dotenv()
 
 # ---------------------------------------------------------------------------------------------------
 #
@@ -23,27 +29,16 @@ all_model_file = "models_all.txt"
 # ---------------------------------------------------------------------------------------------------
 
 
-def pytest_generate_tests(metafunc):
-    model = metafunc.config.getoption("model")
-    run_type = metafunc.config.getoption("run_type")
-
-    if model is not None:
-        models_name = [model]
-    elif run_type is not None:
-        model_file = f"models_{run_type}.txt"
-        models = models_file(model_file)
-        models_name = [m["model"] for m in models]
-    else:
-        models_name = ["openhermes"]
-
-    metafunc.parametrize("model", models_name)
+def pytest_runtest_teardown(item, nextitem):
+    delay = item.config.getoption("--delay")
+    if delay:
+        time.sleep(delay)
 
 
 def pytest_terminal_summary(terminalreporter):
     results_dir = "results"
     os.makedirs(results_dir, exist_ok=True)
 
-    # Function to move existing files
     def move_existing_file(base_filename):
         filename = os.path.join(results_dir, base_filename)
         if os.path.exists(filename):
@@ -57,13 +52,10 @@ def pytest_terminal_summary(terminalreporter):
                 os.path.join(results_dir, f"{base_filename.split('.')[0]}_{index}.txt"),
             )
 
-    # Move existing passed.txt and failed.txt files if they exist
     move_existing_file("passed.txt")
     move_existing_file("failed.txt")
-
     passed_tests = []
     failed_tests = []
-
     for key in terminalreporter.stats:
         for report in terminalreporter.stats[key]:
             if hasattr(report, "when") and report.when == "call":
@@ -71,10 +63,8 @@ def pytest_terminal_summary(terminalreporter):
                     passed_tests.append(report.nodeid)
                 elif report.failed:
                     failed_tests.append(report.nodeid)
-
     with open(os.path.join(results_dir, "passed.txt"), "w") as f:
         f.write("\n".join(passed_tests))
-
     with open(os.path.join(results_dir, "failed.txt"), "w") as f:
         f.write("\n".join(failed_tests))
 
@@ -82,27 +72,48 @@ def pytest_terminal_summary(terminalreporter):
 def pytest_addoption(parser):
     parser.addoption("--model", action="store", default=None)
     parser.addoption("--run_type", action="store", default=None)
+    parser.addoption("--reorder", action="store_true", help="Reorder test items")
+    parser.addoption(
+        "--delay",
+        action="store",
+        default=0,
+        type=int,
+        help="Delay between tests in seconds",
+    )
 
 
-"""
+def pytest_collection_modifyitems(config, items):
+    """
+    If reorder is set then run a model against all tests then repeat using sesequent models.
+    Otherwise run each test agains all models before move to next test
+    """
+    if config.getoption("--reorder"):
+        # Group items by model
+        groups = {}
+        for item in items:
+            model_marker = item.callspec.params.get("model", "default")
+            groups.setdefault(model_marker, []).append(item)
+
+        # Flatten the grouped items
+        ordered_items = [item for group in groups.values() for item in group]
+
+        # Assign the ordered items back to items
+        items[:] = ordered_items
+
+
 def pytest_generate_tests(metafunc):
-    models_name = ["model1" "model2"]
+    model = metafunc.config.getoption("model")
+    run_type = metafunc.config.getoption("run_type")
+    if model is not None:
+        models_name = [model]
+    elif run_type is not None:
+        model_file = f"models_{run_type}.txt"
+        models = models_file(model_file)
+        models_name = [m["model"] for m in models]
+    else:
+        models_name = ["openhermes"]
+    printit("models_name", models_name)
     metafunc.parametrize("model", models_name)
-
-I want to run test in this order where the go throught all the test with first model before the second model:
-test1(model1)
-test2(model1)
-test1(model2)
-test2(model2)
-
-But I got this order instead were it iterate models per test.
-test1(model1)
-test1(model2)
-test2(model1)
-test2(model2)
-
-How to get pytest to do this?
-"""
 
 
 #
@@ -167,6 +178,41 @@ def get_package_root():
 #
 # ############ Fixtures ############
 #
+
+
+@pytest.fixture
+def vector_store_factory():
+    dbname = os.getenv("POSTGRES_DB")
+    user = os.getenv("POSTGRES_USER", "langchain")
+    password = os.getenv("POSTGRES_PASSWORD")
+    host = os.getenv("POSTGRES_HOST")
+    port = os.getenv("POSTGRES_SRC_PORT")
+    # if isinstance(port, tuple):
+    #     port = port[0]
+    port = int(port)
+    printit("dbname", dbname)
+    printit("user", user)
+    printit("password", password)
+    printit("host", host)
+    printit("port", port)
+    connection = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{dbname}"
+    options = {}
+    options["embedding"] = "chroma"
+    options["embedmodel"] = None
+    embeddings = get_embeddings(options)
+    printit("connection", connection)
+    printit("options", options)
+    collection_name = "my_collection"
+
+    def create_vector_store(collection_name):
+        return PGVector(
+            embeddings=embeddings,
+            collection_name=collection_name,
+            connection=connection,
+            use_jsonb=True,
+        )
+
+    return create_vector_store
 
 
 @pytest.fixture
