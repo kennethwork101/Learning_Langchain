@@ -18,7 +18,6 @@ wheels/
 .env*
 .ipynb_checkpoints/
 .pytest_cache/
-.python-version
 .ruff_cache/
 .venv
 .vscode/
@@ -27,3 +26,4 @@ ipynb_files/
 mydb/
 results*/
 out*
+uv.lock

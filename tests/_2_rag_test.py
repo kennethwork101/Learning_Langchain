@@ -154,7 +154,6 @@ def test_t8_func(options, model, package_root):
     assert "$4.5bn" in response[0].page_content.lower()
 
 
-@pytest.mark.testme
 @clock
 def test_t9_func(options, model, vector_store_factory, package_root):
     name_ = f"{inspect.currentframe().f_code.co_name}"

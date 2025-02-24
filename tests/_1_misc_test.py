@@ -212,7 +212,7 @@ def test_t9_func(options, model):
     assert "cohere" in response.lower()
 
 
-# @pytest.mark.testme
+@pytest.mark.testme
 @clock
 def test_t10_func(options, model):
     name_ = f"{inspect.currentframe().f_code.co_name}"
