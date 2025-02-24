@@ -17,6 +17,7 @@ wheels/
 .DS_Store
 .env*
 .ipynb_checkpoints/
+.python-version
 .pytest_cache/
 .ruff_cache/
 .venv
