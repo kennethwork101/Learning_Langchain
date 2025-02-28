@@ -19,6 +19,8 @@ dependencies = [
     "tf-keras>=2.18.0",
     "python-dotenv>=1.0.1",
     "kwwutils>=0.1.13",
+    "psycopg[binary]>=3.2.5",
+    "pgvector>=0.3.6",
 ]
 
 [project.optional-dependencies]
